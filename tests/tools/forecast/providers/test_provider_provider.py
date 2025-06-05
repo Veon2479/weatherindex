@@ -4,6 +4,7 @@ import os
 import pytest
 
 from forecast.providers.provider import BaseForecastInPointProvider, batched
+from forecast.req_interface import Response
 from forecast.sensor import Sensor
 from typing import List
 from typing_extensions import override
@@ -36,9 +37,12 @@ def test_batched_invalid_size(batch_size):
 
 class DummySensorProvider(BaseForecastInPointProvider):
     @override
-    async def get_json_forecast_in_point(self, lon: float, lat: float):
+    async def _get_json_forecast_in_point(self, lon: float, lat: float) -> Response:
         await asyncio.sleep(1)
-        return json.dumps({"test": "data", "lon": lon, "lat": lat})
+        return Response(
+            status=200,
+            payload=json.dumps({"test": "data", "lon": lon, "lat": lat})
+        )
 
 
 @pytest.mark.asyncio
@@ -70,3 +74,7 @@ async def test_sensor_provider_base_forecast(tmp_path):
         assert p.exists(), f"Missing output file for sensor {s.id}"
         data = json.loads(p.read_text())
         assert data == {"test": "data", "lon": s.lon, "lat": s.lat}
+
+    # Check if fetching report was created
+    report_path = tmp_path / "fetching-report.csv"
+    assert report_path.exists(), "Missing fetching report"

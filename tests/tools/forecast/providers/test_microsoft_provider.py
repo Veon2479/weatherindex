@@ -1,8 +1,11 @@
 import pytest
+from unittest.mock import AsyncMock, patch
+import json
 
 from forecast.providers.provider import BaseProvider
 from forecast.providers.microsoft import Microsoft
 from forecast.sensor import Sensor
+from forecast.req_interface import Response
 from unittest.mock import MagicMock
 
 
@@ -23,3 +26,26 @@ def test_microsoft_smoke(test_sensors):
     assert isinstance(client, Microsoft)
     assert isinstance(client, BaseProvider)
     assert len(client.sensors) == 2
+
+
+@pytest.mark.asyncio
+@patch.object(Microsoft, "_native_get", new_callable=AsyncMock)
+async def test_get_json_forecast_in_point(mock_get, test_sensors):
+    mock_response = Response(
+        status=200,
+        payload="{\"test\": \"data\"}"
+    )
+    mock_get.return_value = mock_response
+
+    client = Microsoft(sensors=test_sensors, client_id="test_client_id", subscription_key="test_subscription_key")
+    response = await client._get_json_forecast_in_point(lon=10.0, lat=20.0)
+
+    assert response.status == 200
+    assert response.ok is True
+
+    # Parse the response payload to verify its structure
+    payload = json.loads(response.payload)
+    assert "position" in payload
+    assert "payload" in payload
+    assert payload["position"] == {"lon": 10.0, "lat": 20.0}
+    assert payload["payload"] == {"test": "data"}
