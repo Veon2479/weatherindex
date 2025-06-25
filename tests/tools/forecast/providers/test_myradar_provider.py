@@ -1,7 +1,7 @@
 import pytest
 
-from forecast.providers.provider import BaseProvider
 from forecast.providers.myradar import MyRadar
+from forecast.providers.provider import BaseProvider
 from forecast.sensor import Sensor
 from unittest.mock import MagicMock
 
