@@ -1,10 +1,10 @@
 import aioboto3
 import os
 
-from urllib.parse import urlparse
 from forecast.publishers.publisher import Publisher
-
 from rich.console import Console
+from urllib.parse import urlparse
+
 
 console = Console()
 

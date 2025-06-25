@@ -5,14 +5,12 @@ import json
 import os
 
 from forecast.providers.provider import BaseParallelExecutionProvider
-from forecast.utils.req_interface import RequestInterface
-
 from forecast.req_interface import Response
-
+from forecast.utils.req_interface import RequestInterface
 from itertools import product
-
 from rich.console import Console
 from typing_extensions import override  # for python <3.12
+
 
 console = Console()
 

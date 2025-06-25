@@ -1,10 +1,8 @@
 import json
 
 from forecast.providers.provider import BaseForecastInPointProvider
-from forecast.utils.req_interface import RequestInterface
-
 from forecast.req_interface import Response
-
+from forecast.utils.req_interface import RequestInterface
 from typing_extensions import override  # for python <3.12
 
 

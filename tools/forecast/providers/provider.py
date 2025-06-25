@@ -5,17 +5,16 @@ import shutil
 
 from abc import abstractmethod
 from concurrent.futures import ProcessPoolExecutor
-
 from forecast.publishers.publisher import Publisher
+from forecast.sensor import Sensor
 from forecast.utils.req_interface import Response
 from forecast.utils.time import Timestamp, time_to_next_run
-from forecast.sensor import Sensor
 from functools import partial
 from itertools import islice
+from rich.console import Console
 from typing import Awaitable, Callable, Generator, TypeVar
 from typing_extensions import override  # for python <3.12
 
-from rich.console import Console
 
 console = Console()
 
