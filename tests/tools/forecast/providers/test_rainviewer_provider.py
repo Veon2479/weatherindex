@@ -4,7 +4,7 @@ import pytest
 import tempfile
 
 from forecast.providers.rainviewer import RainViewer
-from forecast.req_interface import Response
+from forecast.utils.req_interface import Response
 from unittest.mock import AsyncMock, MagicMock, patch
 
 

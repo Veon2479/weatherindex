@@ -4,8 +4,7 @@ import jwt
 from dataclasses import dataclass
 from datetime import datetime
 from forecast.providers.provider import BaseForecastInPointProvider
-from forecast.req_interface import Response
-from forecast.utils.req_interface import RequestInterface
+from forecast.utils.req_interface import RequestInterface, Response
 from typing import BinaryIO
 from typing_extensions import override  # for python <3.12
 

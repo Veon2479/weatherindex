@@ -3,8 +3,8 @@ import pytest
 
 from forecast.providers.microsoft import Microsoft
 from forecast.providers.provider import BaseProvider
-from forecast.req_interface import Response
 from forecast.sensor import Sensor
+from forecast.utils.req_interface import Response
 from unittest.mock import AsyncMock, MagicMock, patch
 
 

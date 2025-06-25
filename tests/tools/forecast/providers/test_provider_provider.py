@@ -4,11 +4,9 @@ import os
 import pytest
 
 from forecast.providers.provider import BaseForecastInPointProvider, batched
-from forecast.req_interface import Response
 from forecast.sensor import Sensor
-from typing import List
+from forecast.utils.req_interface import Response
 from typing_extensions import override
-from unittest.mock import MagicMock
 
 
 @pytest.mark.parametrize("input_data,batch_size,expected", [
