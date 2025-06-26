@@ -99,6 +99,7 @@ class RainViewer(BaseParallelExecutionProvider, RequestInterface):
     async def fetch_job(self, timestamp: int):
         snapshot_timestamp = timestamp
         download_path = os.path.join(self._download_path, str(timestamp))
+        os.makedirs(download_path, exist_ok=True)
 
         snapshot_available = False
         metadata = None
@@ -162,7 +163,7 @@ class RainViewer(BaseParallelExecutionProvider, RequestInterface):
                                                     chunk_func=_download_tiles_batch)
 
         # Count successful responses
-        valid_results = sum([1 for resp in responses if resp.ok])
+        valid_results = len([resp for resp in responses if resp.ok])
         console.log(f"Downloaded {valid_results} tiles")
         console.log(f"Errors: {len(jobs) - valid_results}")
 

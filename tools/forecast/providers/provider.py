@@ -7,6 +7,7 @@ from abc import abstractmethod
 from concurrent.futures import ProcessPoolExecutor
 from forecast.publishers.publisher import Publisher
 from forecast.sensor import Sensor
+from forecast.utils.constants import FETCHING_REPORT_NAME
 from forecast.utils.req_interface import Response
 from forecast.utils.time import Timestamp, time_to_next_run
 from functools import partial
@@ -108,7 +109,7 @@ class BaseProvider:
                              statuses: list[bool],
                              codes: list[int]):
         report = pd.DataFrame({"target": targets, "status": statuses, "code": codes})
-        report.to_csv(os.path.join(folder, "fetching-report.csv"), index=False)
+        report.to_csv(os.path.join(folder, FETCHING_REPORT_NAME), index=False)
 
 
 def batched(iterable: list[T], n: int) -> Generator[list[T], None, None]:
@@ -170,7 +171,7 @@ def _process_sensor_chunk(sensors: list[Sensor],
 
                 with open(os.path.join(download_path, f"{sensor.id}.json"), file_mode) as f:
                     f.write(resp.payload)
-            except Exception as e:
+            except Exception:
                 resp.set_failed()
                 return resp
 

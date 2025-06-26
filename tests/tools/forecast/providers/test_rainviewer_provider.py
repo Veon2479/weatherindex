@@ -4,6 +4,7 @@ import pytest
 import tempfile
 
 from forecast.providers.rainviewer import RainViewer
+from forecast.utils.constants import FETCHING_REPORT_NAME
 from forecast.utils.req_interface import Response
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -55,8 +56,7 @@ async def test_get_forecast(mock_get, mock_execute):
     mock_execute.return_value = [Response(status=200, payload=b"test")] * total_jobs
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        snapshot_timestamp = 1234567890
-        download_path = os.path.join(temp_dir, str(snapshot_timestamp))
+        download_path = os.path.join(temp_dir, "download")
         os.makedirs(download_path)
 
         client = RainViewer(token="test_token",
@@ -66,7 +66,9 @@ async def test_get_forecast(mock_get, mock_execute):
                             process_num=1,
                             chunk_size=1)
 
-        await client.fetch_job(timestamp=1234567890)
+        timestamp = 1234567890
+        await client.fetch_job(timestamp=timestamp)
+        assert os.path.exists(os.path.join(download_path, str(timestamp), FETCHING_REPORT_NAME))
 
         # Verify metadata was requested
         mock_get.assert_called_once_with(url="https://api.rainviewer.com/private/test_token/weather-maps.json")
@@ -90,7 +92,8 @@ async def test_get_forecast_metadata_error(mock_get):
     mock_get.return_value = Response(status=0)  # Failed response
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        download_path = os.path.join(temp_dir, "1234567890")
+        timestamp = 1234567890
+        download_path = os.path.join(temp_dir, str(timestamp))
         os.makedirs(download_path)
 
         client = RainViewer(token="test_token",
@@ -99,7 +102,7 @@ async def test_get_forecast_metadata_error(mock_get):
                             publisher=MagicMock(),
                             process_num=1,
                             chunk_size=1)
-        await client.fetch_job(timestamp=1234567890)
+        await client.fetch_job(timestamp=timestamp)
 
         # Verify metadata request was made
         mock_get.assert_called_once_with(url="https://api.rainviewer.com/private/test_token/weather-maps.json")

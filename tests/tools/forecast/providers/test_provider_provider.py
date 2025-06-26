@@ -5,6 +5,7 @@ import pytest
 
 from forecast.providers.provider import BaseForecastInPointProvider, batched
 from forecast.sensor import Sensor
+from forecast.utils.constants import FETCHING_REPORT_NAME
 from forecast.utils.req_interface import Response
 from typing_extensions import override
 
@@ -35,7 +36,7 @@ def test_batched_invalid_size(batch_size):
 
 class DummySensorProvider(BaseForecastInPointProvider):
     @override
-    async def _get_json_forecast_in_point(self, lon: float, lat: float) -> Response:
+    async def get_json_forecast_in_point(self, lon: float, lat: float) -> Response:
         await asyncio.sleep(1)
         return Response(
             status=200,
@@ -74,5 +75,5 @@ async def test_sensor_provider_base_forecast(tmp_path):
         assert data == {"test": "data", "lon": s.lon, "lat": s.lat}
 
     # Check if fetching report was created
-    report_path = tmp_path / "fetching-report.csv"
+    report_path = tmp_path / str(timestamp) / FETCHING_REPORT_NAME
     assert report_path.exists(), "Missing fetching report"
