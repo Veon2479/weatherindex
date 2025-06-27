@@ -4,7 +4,7 @@ import typing
 import zipfile
 
 from abc import abstractmethod
-from tools.forecast.utils.constants import FETCHING_REPORT_NAME
+from metrics.utils.constants import FETCHING_REPORT_NAME
 
 
 class BaseParser:
