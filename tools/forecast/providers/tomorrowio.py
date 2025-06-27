@@ -45,7 +45,7 @@ class TomorrowIo(BaseForecastInPointProvider, RequestInterface):
         return await self._native_post(url, headers=headers, body=payload)
 
     @override
-    async def _get_json_forecast_in_point(self, lon: float, lat: float) -> Response:
+    async def get_json_forecast_in_point(self, lon: float, lat: float) -> Response:
         if self.forecast_type == "hour":
             resp = await self._request_1hour_forecast(lon=lon, lat=lat)
         elif self.forecast_type == "6hours":

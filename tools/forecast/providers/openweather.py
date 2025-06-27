@@ -12,7 +12,7 @@ class OpenWeather(BaseForecastInPointProvider, RequestInterface):
         self.token = token
 
     @override
-    async def _get_json_forecast_in_point(self, lon: float, lat: float) -> Response:
+    async def get_json_forecast_in_point(self, lon: float, lat: float) -> Response:
         # https://openweathermap.org/api/one-call-3#how
         url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={self.token}"
 

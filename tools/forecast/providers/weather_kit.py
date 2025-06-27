@@ -88,7 +88,7 @@ class WeatherKit(BaseForecastInPointProvider, RequestInterface):
             self.token = token.token
 
     @override
-    async def _get_json_forecast_in_point(self, lon: float, lat: float) -> Response:
+    async def get_json_forecast_in_point(self, lon: float, lat: float) -> Response:
         # https://developer.apple.com/documentation/weatherkitrestapi/get_api_v1_weather_language_latitude_longitude
         url = f"https://weatherkit.apple.com/api/v1/weather/en/{lat}/{lon}/"
         headers = {

@@ -41,7 +41,7 @@ async def test_get_json_forecast_in_point(mock_get, test_sensors):
                        client_id="test_client_id",
                        subscription_key="test_subscription_key",
                        publisher=MagicMock())
-    response = await client._get_json_forecast_in_point(lon=10.0, lat=20.0)
+    response = await client.get_json_forecast_in_point(lon=10.0, lat=20.0)
 
     assert response.status == 200
     assert response.ok is True

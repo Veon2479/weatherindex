@@ -12,7 +12,7 @@ class Vaisala(BaseForecastInPointProvider, RequestInterface):
         self.client_secret = client_secret
 
     @override
-    async def _get_json_forecast_in_point(self, lon: float, lat: float) -> Response:
+    async def get_json_forecast_in_point(self, lon: float, lat: float) -> Response:
         url = (f"https://data.api.xweather.com/conditions/{lat},{lon}?filter=minutelyprecip"
                f"&client_id={self.client_id}&client_secret={self.client_secret}")
         resp = await self._native_get(url=url)

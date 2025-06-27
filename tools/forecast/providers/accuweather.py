@@ -12,7 +12,7 @@ class AccuWeather(BaseForecastInPointProvider, RequestInterface):
         self.token = token
 
     @override
-    async def _get_json_forecast_in_point(self, lon: float, lat: float) -> Response:
+    async def get_json_forecast_in_point(self, lon: float, lat: float) -> Response:
         url = f"http://dataservice.accuweather.com/forecasts/v1/minute?q={lat},{lon}&apikey={self.token}"
         resp = await self._native_get(url=url)
         if resp.ok:
