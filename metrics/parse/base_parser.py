@@ -1,9 +1,10 @@
 import os
-import pandas
+import pandas as pd
 import typing
 import zipfile
 
 from abc import abstractmethod
+from tools.forecast.utils.constants import FETCHING_REPORT_NAME
 
 
 class BaseParser:
@@ -25,14 +26,15 @@ class BaseParser:
             timestamp = int(zip_name.replace(".zip", ""))
 
             for file_name in zip_file.namelist():
-                _, ext = os.path.splitext(file_name)
-                if self._should_parse_file_extension(ext):
-                    parsed_rows = self._parse_impl(timestamp=timestamp,
-                                                   file_name=file_name,
-                                                   data=zip_file.read(file_name))
-                    rows.extend(parsed_rows)
+                if file_name != FETCHING_REPORT_NAME:
+                    _, ext = os.path.splitext(file_name)
+                    if self._should_parse_file_extension(ext):
+                        parsed_rows = self._parse_impl(timestamp=timestamp,
+                                                       file_name=file_name,
+                                                       data=zip_file.read(file_name))
+                        rows.extend(parsed_rows)
 
-        data_frame = pandas.DataFrame(rows, columns=self._get_columns())
+        data_frame = pd.DataFrame(rows, columns=self._get_columns())
         data_frame.to_parquet(output_parquet_path, compression="gzip")
 
     @abstractmethod
