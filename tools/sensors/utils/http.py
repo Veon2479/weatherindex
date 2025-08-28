@@ -1,12 +1,11 @@
 import aiohttp
 import asyncio
 import logging
-import typing
 
 
 class Http:
     @staticmethod
-    async def get(url: str, headers: dict = {}, retry_count: int = 5) -> typing.Optional[typing.Any]:
+    async def get(url: str, headers: dict = {}, retry_count: int = 5) -> bytes | None:
         """
         Get the data from the url
 
@@ -21,23 +20,52 @@ class Http:
 
         Returns
         -------
-        data : typing.Optional[typing.Any]
+        data : bytes | None
             The data from the url
         """
         remain_retries = retry_count
+
         while remain_retries > 0:
             # Download the data
             async with aiohttp.ClientSession(headers=headers) as session:
                 try:
                     response = await session.get(url)
-                except Exception as ex:
+
+                    if response.status == 200:
+                        return await response.read()
+
+                except BaseException as ex:
                     logging.warning(f"Wasn't able to download `{url}`")
                     if remain_retries == 1:
                         logging.exception(ex)
 
-                # Check if the data is downloaded
+            # Wait for the next try
+            if remain_retries > 0:
+                logging.info(f"Waiting for 1 second before retrying to download `{url}`")
+
+                await asyncio.sleep(1)
+                remain_retries -= 1
+
+        return None
+
+    @staticmethod
+    async def get_with_session(url: str,
+                               session: aiohttp.ClientSession,
+                               headers: dict = {},
+                               retry_count: int = 5) -> bytes | None:
+        remain_retries = retry_count
+        response = None
+        while remain_retries > 0:
+            try:
+                response = await session.get(url)
+
                 if response.status == 200:
                     return await response.read()
+
+            except BaseException as ex:
+                logging.warning(f"Wasn't able to download `{url}`")
+                if remain_retries == 1:
+                    logging.exception(ex)
 
             # Wait for the next try
             if remain_retries > 0:
