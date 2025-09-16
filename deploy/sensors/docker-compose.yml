@@ -62,7 +62,7 @@ services:
       --storage-uri ${S3_URI_FSDIOPENDATA}
       fsdiopendata
 
-  ndbc-downloader:
+  tao-triton-downloader:
     profiles:
       - ndbc
     image: weatherindex/weatherindex:sensors-${METRICS_DOCKER_VERSION}
@@ -70,9 +70,9 @@ services:
       - .env
     restart: unless-stopped
     volumes:
-      - ./.volume/download/ndbc/:/.download/ndbc/
+      - ./.volume/download/tao_triton/:/.download/tao_triton/
     command: |
       python -m sensors
-      --download-path ./download/ndbc
-      --storage-uri ${S3_URI_NDBC}
-      ndbc
+      --download-path ./download/tao_triton
+      --storage-uri ${S3_URI_TAO_TRITON}
+      tao-triton
