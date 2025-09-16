@@ -64,7 +64,7 @@ services:
 
   tao-triton-downloader:
     profiles:
-      - ndbc
+      - tao-triton
     image: weatherindex/weatherindex:sensors-${METRICS_DOCKER_VERSION}
     env_file:
       - .env
