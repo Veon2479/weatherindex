@@ -3,7 +3,6 @@ import os
 import re
 import shutil
 
-from abc import ABC
 from metrics.utils.time import format_time
 from rich.console import Console
 from types import MappingProxyType
@@ -146,7 +145,7 @@ class Session:
 
 
 # class intended for autocomplete and type hintings purposes only
-class CleanupRule(Protocol, ABC):
+class CleanupRule(Protocol):
     def __call__(self, target_dir: str, session: Session) -> None:
         pass
 
