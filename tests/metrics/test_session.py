@@ -62,7 +62,7 @@ class TestSessionCleanupManager:
 
         os_walk_mock.return_value = [("test/", (), ("100.zip", "99.zip", "60.zip", "102.zip"))]
 
-        SessionCleanupManager._default_cleanup_rule(target_dir="test", session=session)
+        SessionCleanupManager._default_cleanup_rule(None, target_dir="test", session=session)
 
         removed_zips = []
         for args, _ in os_rm_mock.call_args_list:
