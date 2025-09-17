@@ -137,7 +137,7 @@ class Session:
 
         return session
 
-    def clear_outdated(self, deadline_timestamp: int):
+    def clear_outdated(self):
 
         self._cleanup_manager.clear_outdated_data(target_dir=self.data_folder, session=self)
         self._cleanup_manager.clear_outdated_sensors(target_dir=self.sensors_folder, session=self)
