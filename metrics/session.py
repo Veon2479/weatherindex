@@ -3,8 +3,11 @@ import os
 import re
 import shutil
 
+from abc import ABC
 from metrics.utils.time import format_time
 from rich.console import Console
+from types import MappingProxyType
+from typing import Protocol
 
 console = Console()
 
@@ -28,10 +31,10 @@ class Session:
                  start_time: int,
                  end_time: int,
                  forecast_range: int = 7800,
-                 data_folder: str = None,
-                 sensors_folder: str = None,
-                 tables_folder: str = None,
-                 metrics_folder: str = None):
+                 data_folder: str | None = None,
+                 sensors_folder: str | None = None,
+                 tables_folder: str | None = None,
+                 metrics_folder: str | None = None):
         self._path = session_path
         self._start_time = start_time
         self._end_time = end_time
@@ -40,6 +43,7 @@ class Session:
         self._tables_folder = tables_folder or os.path.join(self._path, TABLES_FOLDER)
         self._sensors_folder = sensors_folder or os.path.join(self._path, SENSORS_FOLDER)
         self._metrics_folder = metrics_folder or os.path.join(self._path, METRICS_FOLDER)
+        self._cleanup_manager = SessionCleanupManager()
 
     @staticmethod
     def create(start_time: int, end_time: int, forecast_range: int, session_path: str, session_clear: bool):
@@ -134,21 +138,62 @@ class Session:
 
         return session
 
-    def _clear_outdated(self, target_dir: str, deadline: int):
+    def clear_outdated(self, deadline_timestamp: int):
+
+        self._cleanup_manager.clear_outdated_data(target_dir=self.data_folder, session=self)
+        self._cleanup_manager.clear_outdated_sensors(target_dir=self.sensors_folder, session=self)
+        self._cleanup_manager.clear_outdated_tables(target_dir=self.tables_folder, session=self)
+
+
+# class intended for autocomplete and type hintings purposes only
+class CleanupRule(Protocol, ABC):
+    def __call__(self, target_dir: str, session: Session) -> None:
+        pass
+
+
+class SessionCleanupManager:
+
+    # read-only mappings
+    DATA_CLEANUP_RULE_MAPPING: MappingProxyType[str, CleanupRule] = MappingProxyType({})
+    SENSOR_CLEANUP_RULE_MAPPING: MappingProxyType[str, CleanupRule] = MappingProxyType({})
+    TABLE_CLEANUP_RULE_MAPPING: MappingProxyType[str, CleanupRule] = MappingProxyType({})
+
+    def _default_cleanup_rule(self, target_dir: str, session: Session):
+        deadline = session.start_time - session.forecast_range
+
+        console.log(f"Clear data older than ({format_time(deadline)}) in {target_dir}")
+
         timestamp_regexp = r'^\d+(?=\.(zip|gz|parquet|csv)$)'
-        for dir, _, files in os.walk(target_dir):
+        for root, _, files in os.walk(target_dir):
             for file_name in files:
                 match = re.match(timestamp_regexp, file_name)
                 if match:
                     timestamp = int(match.group())
                     if timestamp < deadline:
-                        os.remove(os.path.join(dir, file_name))
+                        os.remove(os.path.join(root, file_name))
 
-    def clear_outdated(self, deadline_timestamp: int):
-        console.log(f"Clear data older then {deadline_timestamp} ({format_time(deadline_timestamp)})")
-        target_dirs = [self.data_folder,
-                       self.sensors_folder,
-                       self.tables_folder]
+    def _dispatch_rules_and_call(self,
+                                 target_dir: str,
+                                 mapping: MappingProxyType,
+                                 session: Session,):
+        for vendor in os.listdir(target_dir):
+            vendor_path = os.path.join(target_dir, vendor)
+            if vendor in mapping:
+                mapping[vendor](target_dir=vendor_path, session=session)
+            else:
+                self._default_cleanup_rule(target_dir=vendor_path, session=session)
 
-        for dir in target_dirs:
-            self._clear_outdated(target_dir=dir, deadline=deadline_timestamp)
+    def clear_outdated_data(self, target_dir: str, session: Session):
+        self._dispatch_rules_and_call(target_dir=target_dir,
+                                      mapping=self.DATA_CLEANUP_RULE_MAPPING,
+                                      session=session,)
+
+    def clear_outdated_sensors(self, target_dir: str, session: Session):
+        self._dispatch_rules_and_call(target_dir=target_dir,
+                                      mapping=self.SENSOR_CLEANUP_RULE_MAPPING,
+                                      session=session,)
+
+    def clear_outdated_tables(self, target_dir: str, session: Session):
+        self._dispatch_rules_and_call(target_dir=target_dir,
+                                      mapping=self.TABLE_CLEANUP_RULE_MAPPING,
+                                      session=session,)
