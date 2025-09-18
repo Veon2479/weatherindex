@@ -208,7 +208,7 @@ class CheckoutExecutor:
     def run(self):
         # clear snapshots outside of calculation range before download
         # to reduce peak disk usage for long distance forecasts
-        self._session.clear_outdated(deadline_timestamp=self._session.get_data_expiration_timestamp())
+        self._session.clear_outdated(deadline_timestamp=self._session.data_expiration_timestamp)
 
         checkout_jobs = [*self._make_forecast_checkout_jobs(session=self._session,
                                                             forecasts_sources=self.forecasts_sources),
