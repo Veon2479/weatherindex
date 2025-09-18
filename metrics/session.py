@@ -134,6 +134,9 @@ class Session:
 
         return session
 
+    def get_deadline(self) -> int:
+        return self.start_time - self.forecast_range
+
     def _clear_outdated(self, target_dir: str, deadline: int):
         timestamp_regexp = r'^\d+(?=\.(zip|gz|parquet|csv)$)'
         for dir, _, files in os.walk(target_dir):
