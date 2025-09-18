@@ -134,7 +134,7 @@ class Session:
 
         return session
 
-    def get_deadline(self) -> int:
+    def get_data_expiration_timestamp(self) -> int:
         return self.start_time - self.forecast_range
 
     def _clear_outdated(self, target_dir: str, deadline: int):
