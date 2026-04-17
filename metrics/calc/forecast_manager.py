@@ -107,7 +107,13 @@ class ForecastManager:
                     assert "timestamp" in data.columns
 
                     data = data[data["id"].isin(sensor_ids)].copy()
-                    data["forecast_time"] = data["timestamp"] - curr_time
+
+                    # data["forecast_time"] = data["timestamp"] - curr_time
+
+                    if "forecast_offset" not in data.columns:
+                        data["forecast_time"] = data["timestamp"] - curr_time
+                    else:
+                        data["forecast_time"] = data["forecast_offset"]
 
                     loaded_forecasts.append(data)
 
