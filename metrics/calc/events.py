@@ -9,19 +9,33 @@ import uuid
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
-
+from functools import partial
 from metrics.calc.evaluators import get_evaluator
 from metrics.calc.forecast_manager import DataVendor, ForecastManager
 from metrics.calc.utils import read_selected_sensors
 from metrics.session import Session
 from metrics.utils.frame import concat_frames
 from metrics.utils.time import floor_timestamp
-
+from multiprocessing import Pool
 from rich.console import Console
 from tqdm import tqdm
 
 
 console = Console()
+
+
+def _process_group(args, evaluator):
+    obs_data, fc_data = args
+    return evaluator(obs_data, fc_data)
+
+
+# def _process_group(args, evaluator, grouped_observations):
+#     (sensor_id, timestamp, forecast_time), sensor_forecast_time_data = args
+#     sensor_time_key = (sensor_id, timestamp)
+#     if sensor_time_key not in grouped_observations.groups:
+#         return []
+#     sensor_observations_data = grouped_observations.get_group(sensor_time_key)
+#     return evaluator(sensor_observations_data, sensor_forecast_time_data)
 
 
 @dataclass
@@ -258,28 +272,42 @@ class Worker:
         grouped_observations = observations.groupby(["id", "timestamp"])
         grouped_forecasts = forecast.groupby(["id", "timestamp", "forecast_time"])
 
-        for (sensor_id, timestamp, forecast_time), sensor_forecast_time_data in grouped_forecasts:
-            sensor_time_key = (sensor_id, timestamp)
+        # for (sensor_id, timestamp, forecast_time), sensor_forecast_time_data in tqdm(grouped_forecasts):
+        #     sensor_time_key = (sensor_id, timestamp)
 
-            if sensor_time_key not in grouped_observations.groups:
+        #     if sensor_time_key not in grouped_observations.groups:
+        #         continue
+
+        #     sensor_observations_data = grouped_observations.get_group(sensor_time_key)
+
+        #     sensor_event_data = self._params.evaluator(sensor_observations_data, sensor_forecast_time_data)
+        #     collected_events.extend(sensor_event_data)
+
+        # worker = partial(
+        #     _process_group,
+        #     evaluator=self._params.evaluator,
+        #     grouped_observations=grouped_observations,
+        # )
+        # with Pool() as pool:
+        #     results = pool.map(worker, grouped_forecasts)
+
+        # collected_events = [e for sub in results for e in sub]
+
+        tasks = []
+        for (sensor_id, timestamp, forecast_time), fc_data in tqdm(grouped_forecasts, desc="preparing jobs"):
+            key = (sensor_id, timestamp)
+            if key not in grouped_observations.groups:
                 continue
+            tasks.append((grouped_observations.get_group(key), fc_data))
 
-            sensor_observations_data = grouped_observations.get_group(sensor_time_key)
+        with Pool() as pool:
+            results = list(tqdm(
+                pool.imap_unordered(partial(_process_group, evaluator=self._params.evaluator), tasks),
+                total=len(tasks),
+                desc="evaluating"
+            ))
 
-            assert sensor_observations_data["id"].unique() == [sensor_id], \
-                f"Expected only one sensor id {sensor_id}, got {sensor_observations_data['id'].unique()}"
-            assert sensor_observations_data["timestamp"].unique() == [timestamp], \
-                f"Expected only one timestamp {timestamp}, got {sensor_observations_data['timestamp'].unique()}"
-
-            assert sensor_forecast_time_data["id"].unique() == [sensor_id], \
-                f"Expected only one sensor id {sensor_id}, got {sensor_forecast_time_data['id'].unique()}"
-            assert sensor_forecast_time_data["timestamp"].unique() == [timestamp], \
-                f"Expected only one timestamp {timestamp}, got {sensor_forecast_time_data['timestamp'].unique()}"
-            assert sensor_forecast_time_data["forecast_time"].unique() == [forecast_time], \
-                f"Expected only one forecast time {forecast_time}, got {sensor_forecast_time_data['forecast_time'].unique()}"
-
-            sensor_event_data = self._params.evaluator(sensor_observations_data, sensor_forecast_time_data)
-            collected_events.extend(sensor_event_data)
+        collected_events = [e for sub in results for e in sub]
 
         console.log(f"Collected {len(collected_events)} events")
 
