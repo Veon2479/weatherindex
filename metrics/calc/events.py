@@ -294,18 +294,16 @@ class Worker:
         # collected_events = [e for sub in results for e in sub]
 
         tasks = []
-        for (sensor_id, timestamp, forecast_time), fc_data in tqdm(grouped_forecasts, desc="preparing jobs"):
+        for (sensor_id, timestamp, forecast_time), fc_data in grouped_forecasts:
             key = (sensor_id, timestamp)
             if key not in grouped_observations.groups:
                 continue
             tasks.append((grouped_observations.get_group(key), fc_data))
 
         with Pool() as pool:
-            results = list(tqdm(
+            results = list(
                 pool.imap_unordered(partial(_process_group, evaluator=self._params.evaluator), tasks),
-                total=len(tasks),
-                desc="evaluating"
-            ))
+            )
 
         collected_events = [e for sub in results for e in sub]
 
