@@ -300,7 +300,7 @@ class Worker:
                 continue
             tasks.append((grouped_observations.get_group(key), fc_data))
 
-        with Pool() as pool:
+        with Pool(18) as pool:
             results = list(
                 pool.imap_unordered(partial(_process_group, evaluator=self._params.evaluator), tasks),
             )
